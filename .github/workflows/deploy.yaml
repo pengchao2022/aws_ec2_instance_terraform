@@ -1,8 +1,8 @@
 name: Deploy EC2 Instance
 
 on:
-  pull_reqeust:
-    type:
+  pull_request:
+    types:
       - closed
     branches:
       - main
