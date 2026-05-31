@@ -1,4 +1,3 @@
-# AWS 配置
 aws_region = "us-east-1"
 
 vpc_id = "vpc-05a0b44f512fd6b3a"
