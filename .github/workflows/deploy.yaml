@@ -30,14 +30,27 @@ jobs:
         with:
           terraform_version: 1.7.0
 
+      - name: Clean up existing EC2 instances
+        run: |
+          echo "清理现有 EC2 实例..."
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:ManagedBy,Values=terraform" "Name=tag:Name,Values=my-ubuntu-server" \
+            --query 'Reservations[*].Instances[*].InstanceId' \
+            --output text)
+          
+          if [ -n "$INSTANCE_IDS" ]; then
+            echo "终止实例: $INSTANCE_IDS"
+            aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+            echo "等待实例终止..."
+            sleep 60
+          fi
+
       - name: Terraform Init
         run: cd terraform && terraform init -reconfigure
 
       - name: Terraform Plan
         id: plan
-        run: |
-          cd terraform
-          terraform plan -out=tfplan
+        run: cd terraform && terraform plan -out=tfplan
 
       - name: Terraform Apply
         run: cd terraform && terraform apply -auto-approve tfplan
