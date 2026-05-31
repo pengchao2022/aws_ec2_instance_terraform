@@ -1,0 +1,76 @@
+name: Deploy EC2 Instance
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+  workflow_dispatch:
+    inputs:
+      instance_name:
+        description: 'Instance name'
+        type: string
+        default: 'my-ubuntu-server'
+      instance_type:
+        description: 'Instance type'
+        type: choice
+        options:
+          - t3.micro
+          - t3.small
+          - t3.medium
+        default: 't3.micro'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-ec2:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform Init
+        run: cd terraform && terraform init -reconfigure
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          cd terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: cd terraform && terraform apply -auto-approve tfplan
+
+      - name: Get EC2 outputs
+        id: output
+        run: |
+          cd terraform
+          echo "instance_id=$(terraform output -raw instance_id)" >> $GITHUB_OUTPUT
+          echo "instance_public_ip=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+          echo "instance_private_ip=$(terraform output -raw instance_private_ip)" >> $GITHUB_OUTPUT
+          echo "ssh_command=$(terraform output -raw ssh_command)" >> $GITHUB_OUTPUT
+
+      - name: Display outputs
+        run: |
+          echo "========================================="
+          echo "✅ EC2 Instance 创建成功！"
+          echo "Instance ID: ${{ steps.output.outputs.instance_id }}"
+          echo "Public IP: ${{ steps.output.outputs.instance_public_ip }}"
+          echo "Private IP: ${{ steps.output.outputs.instance_private_ip }}"
+          echo "SSH Command: ${{ steps.output.outputs.ssh_command }}"
+          echo "========================================="
