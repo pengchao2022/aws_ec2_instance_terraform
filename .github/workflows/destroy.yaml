@@ -39,4 +39,4 @@ jobs:
         run: cd terraform && terraform destroy -auto-approve
 
       - name: Verify destruction
-        run: echo "✅ EC2 Instance 已删除"
+        run: echo "✅ EC2 Instance has been removed successfully!"

@@ -1,7 +1,7 @@
 # AWS 配置
 aws_region = "us-east-1"
 
-vpc_id = "vpc-042b5f68af6523386"
+vpc_id = "vpc-05a0b44f512fd6b3a"
 
 instance_name      = "allen-ubuntu-server"
 instance_type      = "t3.small"
