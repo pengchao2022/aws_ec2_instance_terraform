@@ -101,7 +101,7 @@ locals {
   private_subnet_ids = [for id, subnet in data.aws_subnet.private : subnet.id]
   
   # use the first public subnet and first private subnet 
-  selected_subnet_id = var.use_public_subnet ? public_subnet_ids[0] : private_subnet_ids[0]
+  selected_subnet_id = var.use_public_subnet ? local.public_subnet_ids[0] : local.private_subnet_ids[0]
 }
 
 resource "aws_instance" "ubuntu" {
