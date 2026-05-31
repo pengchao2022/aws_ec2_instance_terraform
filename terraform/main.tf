@@ -2,16 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ============================================
-# 获取现有资源
-# ============================================
-
-# 获取现有的 VPC
-data "aws_vpc" "existing" {
-  id = var.vpc_id
-}
-
-# 获取现有的公有子网
+# get the public subnets ID list 
 data "aws_subnets" "public" {
   filter {
     name   = "vpc-id"
@@ -22,13 +13,13 @@ data "aws_subnets" "public" {
   }
 }
 
-# 获取公有子网详细信息
+# Iterate through the list of IDs to obtain detailed information for each subnet
 data "aws_subnet" "public" {
   for_each = toset(data.aws_subnets.public.ids)
   id       = each.value
 }
 
-# 获取现有的私有子网
+# get the current private subnets ID list
 data "aws_subnets" "private" {
   filter {
     name   = "vpc-id"
@@ -39,13 +30,13 @@ data "aws_subnets" "private" {
   }
 }
 
-# 获取私有子网详细信息
+# lterate through the list of IDs to obtain detailed information for each subnet
 data "aws_subnet" "private" {
   for_each = toset(data.aws_subnets.private.ids)
   id       = each.value
 }
 
-# 获取最新的 Ubuntu 24.04 LTS AMI
+# get the latest ubuntu version
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"] # Canonical
@@ -61,16 +52,14 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# ============================================
-# 安全组（允许所有 IP 访问 SSH）
-# ============================================
 
+# setup the security group
 resource "aws_security_group" "ec2" {
   name        = "${var.instance_name}-sg"
   description = "Security group for EC2 instance - allows SSH from anywhere"
   vpc_id      = var.vpc_id
 
-  # SSH 访问（允许所有 IP）
+  # ssh allow all IPs
   ingress {
     description = "SSH from anywhere"
     from_port   = 22
@@ -79,7 +68,7 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 允许所有出站流量
+  # allow all outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
@@ -93,11 +82,7 @@ resource "aws_security_group" "ec2" {
     ManagedBy   = "terraform"
   }
 }
-
-# ============================================
-# SSH 密钥对
-# ============================================
-
+# ssh keys
 resource "aws_key_pair" "my_key" {
   key_name   = var.key_name
   public_key = var.public_key
@@ -109,17 +94,14 @@ resource "aws_key_pair" "my_key" {
   }
 }
 
-# ============================================
-# EC2 实例
-# ============================================
-
+# ec2 instance
 locals {
-  # 使用第一个公有子网（EC2 需要公网 IP）
-  public_subnet_list  = [for id, subnet in data.aws_subnet.public : subnet.id]
-  private_subnet_list = [for id, subnet in data.aws_subnet.private : subnet.id]
+  # get the subnets list
+  public_subnet_ids  = [for id, subnet in data.aws_subnet.public : subnet.id]
+  private_subnet_ids = [for id, subnet in data.aws_subnet.private : subnet.id]
   
-  # 修正：使用 try 函数避免跨行三元运算符错误
-  selected_subnet_id = var.use_public_subnet ? try(local.public_subnet_list[0], null) : try(local.private_subnet_list[0], null)
+  # use the first public subnet and first private subnet 
+  selected_subnet_id = var.use_public_subnet ? public_subnet_ids[0] : private_subnet_ids[0]
 }
 
 resource "aws_instance" "ubuntu" {
@@ -147,11 +129,7 @@ resource "aws_instance" "ubuntu" {
 
   user_data = var.user_data
 }
-
-# ============================================
-# 弹性 IP（可选，用于固定公网 IP）
-# ============================================
-
+# use the EIP like bind a public IP 
 resource "aws_eip" "ec2" {
   count    = var.assign_eip && var.use_public_subnet ? 1 : 0
   instance = aws_instance.ubuntu.id
