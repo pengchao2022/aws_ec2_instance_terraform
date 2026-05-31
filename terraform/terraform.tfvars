@@ -2,7 +2,7 @@
 aws_region = "us-east-1"
 
 # 现有的 VPC ID（请替换为你的实际 VPC ID）
-vpc_id = "vpc-0cbcf9bde917b32f0"
+vpc_id = "vpc-042b5f68af6523386"
 
 # EC2 配置
 instance_name      = "my-ubuntu-server"
