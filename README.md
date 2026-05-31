@@ -1,6 +1,6 @@
 # Terraform AWS EC2 Module
 
-This repository creates an EC2 instance using an existing VPC, configures security groups, sets up SSH key authentication, and stores Terraform state in S3 with GitHub Actions OIDC authentication.
+This repository creates an EC2 instance using an existing VPC, configures security groups, sets up SSH key authentication, and stores Terraform state in S3 with GitHub Actions OIDC authentication
 
 
 ## Features
