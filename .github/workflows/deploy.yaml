@@ -1,25 +1,11 @@
 name: Deploy EC2 Instance
 
 on:
-  push:
+  pull_reqeust:
+    type:
+      - closed
     branches:
       - main
-    paths:
-      - 'terraform/**'
-  workflow_dispatch:
-    inputs:
-      instance_name:
-        description: 'Instance name'
-        type: string
-        default: 'my-ubuntu-server'
-      instance_type:
-        description: 'Instance type'
-        type: choice
-        options:
-          - t3.micro
-          - t3.small
-          - t3.medium
-        default: 't3.micro'
 
 permissions:
   id-token: write
