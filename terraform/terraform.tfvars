@@ -4,7 +4,7 @@ aws_region = "us-east-1"
 vpc_id = "vpc-042b5f68af6523386"
 
 instance_name      = "allen-ubuntu-server"
-instance_type      = "t3.medium"
+instance_type      = "t3.small"
 root_volume_size   = 20
 
 key_name  = "my-key"
